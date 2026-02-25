@@ -1,0 +1,9 @@
+<%
+  page.subtitle = __('category.subtitle') || '分类'
+%>
+
+<div class="container categories-list">
+  <% site.categories.each(function(cat) { %>
+  <a href="<%= url_for(cat.path) %>" class="cat-item"><%= cat.name %></a>
+  <% }) %>
+</div>

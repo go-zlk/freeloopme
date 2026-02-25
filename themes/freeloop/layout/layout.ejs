@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="<%= config.language %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= page.title ? page.title + ' - ' : '' %><%= config.title %></title>
+  <link rel="stylesheet" href="<%= url_for('css/style.css') %>">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="<%= url_for('/') %>" class="logo"><%= config.title %></a>
+      <div class="nav-links">
+        <a href="<%= url_for('/') %>">首页</a>
+        <a href="<%= url_for('/categories/') %>">知识库</a>
+        <a href="<%= url_for('/lab/') %>">Lab</a>
+        <a href="<%= url_for('/about/') %>">关于</a>
+      </div>
+    </nav>
+  </header>
+
+  <div id="banner" class="banner" style="height: <%= is_home() ? theme.index_banner_height : theme.sub_banner_height %>vh;">
+    <div class="mask">
+      <div class="banner-text">
+        <h1 id="subtitle"><%= page.subtitle || page.title || config.subtitle %></h1>
+      </div>
+    </div>
+  </div>
+
+  <main class="main">
+    <%- body %>
+  </main>
+
+  <footer class="footer">
+    <span><a href="https://hexo.io">Hexo</a> · <a href="<%= config.url %>"><%= config.title %></a></span>
+  </footer>
+
+  <script src="<%= url_for('js/particles.js') %>"></script>
+</body>
+</html>

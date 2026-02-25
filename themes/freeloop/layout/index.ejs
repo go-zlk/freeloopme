@@ -1,0 +1,22 @@
+<%
+  page.subtitle = config.subtitle || page.subtitle
+%>
+
+<div class="container">
+  <% page.posts.each(function(post) { %>
+  <article class="post-card">
+    <h2><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+    <p class="excerpt"><%= strip_html(post.excerpt || post.content).substring(0, 150).trim() %>...</p>
+    <div class="meta">
+      <time><%= date(post.date, config.date_format) %></time>
+      <% if (post.categories && post.categories.length) { 
+        var cats = post.categories.toArray ? post.categories.toArray() : (post.categories.data || post.categories);
+        if (cats && cats[0]) { %>
+        <a href="<%= url_for(cats[0].path) %>"><%= cats[0].name %></a>
+      <% } } %>
+    </div>
+  </article>
+  <% }) %>
+</div>
+
+<%- partial('_partial/paginator') %>

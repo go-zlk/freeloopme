@@ -1,0 +1,9 @@
+<%
+  page.subtitle = __('tag.subtitle') || '标签'
+%>
+
+<div class="container tags-list">
+  <% site.tags.each(function(tag) { %>
+  <a href="<%= url_for(tag.path) %>" class="tag-item">#<%= tag.name %></a>
+  <% }) %>
+</div>

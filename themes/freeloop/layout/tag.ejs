@@ -1,0 +1,12 @@
+<%
+  page.subtitle = page.tag || __('tag.subtitle')
+%>
+
+<div class="container">
+  <% page.posts.each(function(post) { %>
+  <article class="post-card">
+    <h2><a href="<%= url_for(post.path) %>"><%= post.title %></a></h2>
+    <div class="meta"><time><%= date(post.date, config.date_format) %></time></div>
+  </article>
+  <% }) %>
+</div>

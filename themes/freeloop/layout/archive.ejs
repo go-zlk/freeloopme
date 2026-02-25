@@ -1,0 +1,12 @@
+<%
+  page.subtitle = __('archive.subtitle') || '归档'
+%>
+
+<div class="container archive">
+  <% page.posts.each(function(post) { %>
+  <div class="archive-item">
+    <a href="<%= url_for(post.path) %>"><%= post.title %></a>
+    <time><%= date(post.date, config.date_format) %></time>
+  </div>
+  <% }) %>
+</div>
