@@ -5,15 +5,15 @@
 # Site
 title: Freeloop
 subtitle: The journey of a developer
-description: 
-keywords:
+description: 擅长使用 AI 的程序员 · 开发、摄影与旅途记录
+keywords: 程序员,AI,开发,Hexo,个人博客,Freeloop
 author: ZLK
 language: zh-CN
 timezone: Asia/Shanghai
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: http://example.com
+url: https://freeloop.me
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
@@ -97,6 +97,18 @@ ignore:
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
 theme: freeloop
+
+# Sitemap & Feed
+sitemap:
+  path: sitemap.xml
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+  hub:
+  content: true
+  content_limit: 140
+  order_by: -date
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment

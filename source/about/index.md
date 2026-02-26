@@ -1,8 +1,19 @@
 ---
 title: about
 date: 2026-02-20 15:36:47
+description: 关于 ZLK · 擅长使用 AI 的程序员，开发、摄影与旅途
 ---
 <p>不是一个旅游爱好者，但经常在世界各地折腾代码和摄影。</p>
+
+<section class="about-block">
+  <h2>当前在做的事</h2>
+  <p>用 AI 放大思考与实现，写代码、做产品、偶尔拍照。本站用于知识沉淀与 Lab 小工具。</p>
+</section>
+
+<section class="about-block">
+  <h2>联系方式</h2>
+  <p>欢迎通过 GitHub、邮箱或你喜欢的渠道联系。可在本站文章或 Lab 里找到项目与想法。</p>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js"></script>

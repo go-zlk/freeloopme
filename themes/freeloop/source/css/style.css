@@ -259,6 +259,21 @@ html[data-user-color-scheme="dark"] .paginator a:hover:not(.current) {
   background: rgba(255,255,255,0.08);
 }
 
+/* About 结构化区块 */
+.about-block {
+  margin: 1.5rem 0;
+}
+.about-block h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+  opacity: 0.9;
+}
+.about-block p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
 /* 404 */
 .notfound {
   text-align: center;
