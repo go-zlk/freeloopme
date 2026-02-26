@@ -6,6 +6,9 @@
   <title><%= page.title ? page.title + ' - ' : '' %><%= config.title %></title>
   <meta name="description" content="<%= (page.description || page.excerpt || config.description || config.subtitle || '').replace(/"/g, '&quot;') %>">
   <link rel="stylesheet" href="<%= url_for('css/style.css') %>">
+  <script>
+    (function(){var s=typeof localStorage!=='undefined'&&localStorage.getItem('user-color-scheme');if(s==='dark'||s==='light')document.documentElement.setAttribute('data-user-color-scheme',s);else document.documentElement.setAttribute('data-user-color-scheme','light');})();
+  </script>
 </head>
 <body>
   <header class="site-header">
@@ -16,6 +19,10 @@
         <a href="<%= url_for('/categories/') %>">知识库</a>
         <a href="<%= url_for('/lab/') %>">Lab</a>
         <a href="<%= url_for('/about/') %>">关于</a>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="切换浅色/深色模式">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">🌙</span>
+        </button>
       </div>
     </nav>
   </header>
@@ -37,5 +44,6 @@
   </footer>
 
   <script src="<%= url_for('js/particles.js') %>"></script>
+  <script src="<%= url_for('js/theme-toggle.js') %>"></script>
 </body>
 </html>

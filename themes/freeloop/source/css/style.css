@@ -62,6 +62,47 @@ html[data-user-color-scheme="dark"] .site-header {
   opacity: 1;
 }
 
+/* 主题切换按钮 */
+.theme-toggle {
+  margin-left: 1rem;
+  padding: 0.35rem 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  color: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.85;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+html[data-user-color-scheme="dark"] .theme-toggle {
+  border-color: rgba(255,255,255,0.2);
+}
+
+.theme-toggle:hover {
+  opacity: 1;
+}
+
+/* 浅色时显示月亮（点击切换至深色），深色时显示太阳（点击切换至浅色） */
+.theme-icon {
+  display: inline-block;
+}
+.theme-icon-sun {
+  display: none;
+}
+.theme-icon-moon {
+  display: inline-block;
+}
+html[data-user-color-scheme="dark"] .theme-icon-moon {
+  display: none;
+}
+html[data-user-color-scheme="dark"] .theme-icon-sun {
+  display: inline-block;
+}
+
 /* Banner - 全站粒子背景 */
 #banner {
   position: relative;
