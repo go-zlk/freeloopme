@@ -6,176 +6,215 @@ layout: post
 
 <style>
   .cf-container {
-    max-width: 420px;
+    max-width: 440px;
     margin: 0 auto;
     padding: 2.5rem 2rem;
-    background: rgba(255,255,255,0.85);
-    border-radius: 20px;
+    background: linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
+    border-radius: 24px;
     border: 1px solid rgba(0,0,0,0.06);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.06), 0 0 0 1px rgba(255,255,255,0.5) inset;
   }
   html[data-user-color-scheme="dark"] .cf-container {
-    background: rgba(37, 45, 56, 0.9);
+    background: linear-gradient(165deg, rgba(30, 38, 50, 0.95) 0%, rgba(25, 32, 42, 0.9) 100%);
     border-color: rgba(255,255,255,0.08);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03) inset;
   }
 
-  /* 3D Coin Scene */
+  /* 3D Scene：perspective 必须作用于 3D 子元素 */
   .cf-scene {
     perspective: 1200px;
-    padding: 2rem 0;
-    min-height: 180px;
+    transform-style: preserve-3d;
+    padding: 2.5rem 0;
+    min-height: 220px;
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-  .cf-coin {
-    width: 140px;
-    height: 140px;
     position: relative;
-    transform-style: preserve-3d;
   }
-  .cf-coin.flipping-heads {
-    animation: cf-toss-heads 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  /* 地面阴影：升空时变小变淡，落地时变大变深 */
+  .cf-scene::after {
+    content: '';
+    position: absolute;
+    bottom: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 24px;
+    background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(0,0,0,0.18), transparent);
+    border-radius: 50%;
+    filter: blur(6px);
+    pointer-events: none;
   }
-  .cf-coin.flipping-tails {
-    animation: cf-toss-tails 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  .cf-scene.cf-tossing::after {
+    animation: cf-shadow 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
-  @keyframes cf-toss-heads {
-    0% { transform: rotateY(0deg) rotateX(0deg); }
-    100% { transform: rotateY(2520deg) rotateX(720deg); }
+  @keyframes cf-shadow {
+    0%, 100% { width: 120px; height: 24px; opacity: 1; }
+    50% { width: 70px; height: 14px; opacity: 0.4; }
   }
-  @keyframes cf-toss-tails {
-    0% { transform: rotateY(0deg) rotateX(0deg); }
-    100% { transform: rotateY(2700deg) rotateX(720deg); }
+  html[data-user-color-scheme="dark"] .cf-scene::after {
+    background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(0,0,0,0.5), transparent);
+  }
+  html[data-user-color-scheme="dark"] .cf-scene.cf-tossing::after {
+    animation: cf-shadow 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
   }
 
+  /* Coin 容器：旋转父容器，必须 preserve-3d。勿加 filter，会破坏背面渲染 */
+  .cf-coin {
+    width: 150px;
+    height: 150px;
+    position: relative;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    cursor: pointer;
+  }
+
+  /* 抛物线层：仅负责 translateY + scale */
+  .cf-coin-toss {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    border-radius: 50%;
+  }
+  .cf-coin-toss.cf-tossing {
+    animation: cf-parabolic 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  @keyframes cf-parabolic {
+    0%, 100% {
+      transform: translateY(0) scale(1);
+    }
+    25% {
+      transform: translateY(-70px) scale(1.18);
+    }
+    50% {
+      transform: translateY(-100px) scale(1.28);
+    }
+    75% {
+      transform: translateY(-40px) scale(1.08);
+    }
+  }
+
+  /* 旋转层：JS 内联 style 设置 rotateY，transition 丝滑旋转。注意：不能加 filter，会破坏 3D 背面的 backface-visibility */
+  .cf-coin-3d {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    border-radius: 50%;
+    transition: transform 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* 正反面：position absolute 重叠，backface-visibility 关键 */
   .cf-coin-face {
     position: absolute;
     width: 100%;
     height: 100%;
+    left: 0;
+    top: 0;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.8rem;
-    font-weight: 700;
+    overflow: hidden;
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
-    box-shadow: inset 0 0 0 4px rgba(255,255,255,0.25),
-                inset 0 0 20px rgba(0,0,0,0.15),
-                0 6px 20px rgba(0,0,0,0.2);
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
   }
+  .cf-coin-face img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    border-radius: 50%;
+  }
+  /* 正面：朝向屏幕 */
   .cf-coin-face--front {
-    background: linear-gradient(135deg, #f7e8b0 0%, #e8c55c 25%, #d4a84b 50%, #b88a3a 75%, #9a6b20 100%);
-    color: #4a3a10;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.5);
+    transform: rotateY(0deg);
   }
+  /* 反面：初始背对屏幕，必须 rotateY(180deg) */
   .cf-coin-face--back {
-    background: linear-gradient(135deg, #f5e6a8 0%, #e0bc4a 25%, #c9a030 50%, #a67c1a 75%, #8b5e0a 100%);
-    color: #3d2f0a;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.4);
     transform: rotateY(180deg);
   }
-  html[data-user-color-scheme="dark"] .cf-coin-face {
-    box-shadow: inset 0 0 0 4px rgba(255,255,255,0.15),
-                inset 0 0 20px rgba(0,0,0,0.3),
-                0 8px 24px rgba(0,0,0,0.5);
+
+  /* 结果提示 */
+  .cf-result {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgba(0,0,0,0.6);
+    min-height: 1.5em;
+  }
+  html[data-user-color-scheme="dark"] .cf-result {
+    color: rgba(255,255,255,0.7);
   }
 
-  /* Coin edge ring */
-  .cf-coin::before {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 50%;
-    background: linear-gradient(90deg, #b8942e 0%, #d4a84b 20%, #e8c55c 50%, #d4a84b 80%, #b8942e 100%);
-    z-index: -1;
-    opacity: 0.85;
-  }
-
-  /* Button */
+  /* 按钮 */
   .cf-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.85rem 2rem;
+    padding: 0.9rem 2.25rem;
     font-size: 1.05rem;
     font-weight: 600;
     color: #fff;
-    background: linear-gradient(135deg, #30a9de 0%, #2185c7 100%);
+    background: linear-gradient(135deg, #3db8f0 0%, #2196d8 50%, #1976c2 100%);
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 14px rgba(48, 169, 222, 0.4);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4), 0 1px 0 rgba(255,255,255,0.2) inset;
   }
   .cf-btn:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(48, 169, 222, 0.5);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(33, 150, 243, 0.5), 0 1px 0 rgba(255,255,255,0.25) inset;
   }
   .cf-btn:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.35);
   }
   .cf-btn:disabled {
-    opacity: 0.7;
+    opacity: 0.65;
     cursor: not-allowed;
+    transform: none;
+  }
+  .cf-btn:disabled svg {
+    animation: cf-spin 1.2s linear infinite;
+  }
+  @keyframes cf-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
   .cf-btn svg {
-    width: 1.1em;
-    height: 1.1em;
+    width: 1.15em;
+    height: 1.15em;
     fill: currentColor;
   }
 
-  /* Result badge */
-  .cf-result {
-    margin-top: 1.5rem;
-    min-height: 2.2em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .cf-result-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem 1.25rem;
-    border-radius: 50px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    opacity: 0;
-  }
-  .cf-result-badge.visible {
-    animation: cf-fade-in 0.4s ease forwards;
-  }
-  @keyframes cf-fade-in {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .cf-result-badge--heads {
-    background: linear-gradient(135deg, rgba(234, 197, 92, 0.35) 0%, rgba(212, 168, 75, 0.25) 100%);
-    color: #8b6914;
-    border: 1px solid rgba(180, 140, 50, 0.4);
-  }
-  .cf-result-badge--tails {
-    background: linear-gradient(135deg, rgba(180, 140, 50, 0.3) 0%, rgba(139, 105, 20, 0.2) 100%);
-    color: #8b6914;
-    border: 1px solid rgba(150, 110, 30, 0.35);
-  }
-  html[data-user-color-scheme="dark"] .cf-result-badge--heads,
-  html[data-user-color-scheme="dark"] .cf-result-badge--tails {
-    color: #e8c55c;
-    border-color: rgba(232, 197, 92, 0.3);
-  }
 </style>
 
 <div class="cf-container">
-  <div class="cf-scene">
-    <div id="cf-coin" class="cf-coin">
-      <div class="cf-coin-face cf-coin-face--front" id="cf-front">字</div>
-      <div class="cf-coin-face cf-coin-face--back" id="cf-back">花</div>
+  <div class="cf-scene" id="cf-scene">
+    <div id="cf-coin" class="cf-coin" title="点击抛掷">
+      <div class="cf-coin-toss" id="cf-coin-toss">
+        <div class="cf-coin-3d" id="cf-coin-3d">
+          <div class="cf-coin-face cf-coin-face--front">
+            <img src="/lab/coin-flip/images/coin-front.png" alt="正面" />
+          </div>
+          <div class="cf-coin-face cf-coin-face--back">
+            <img src="/lab/coin-flip/images/coin-back.png" alt="反面" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -184,36 +223,58 @@ layout: post
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/></svg>
       抛硬币
     </button>
-  </div>
-
-  <div id="cf-result" class="cf-result">
-    <span id="cf-result-badge" class="cf-result-badge"></span>
+    <div class="cf-result" id="cf-result" aria-live="polite"></div>
   </div>
 </div>
 
 <script>
 (function() {
+  var scene = document.getElementById('cf-scene');
   var coin = document.getElementById('cf-coin');
+  var coinToss = document.getElementById('cf-coin-toss');
+  var coin3d = document.getElementById('cf-coin-3d');
   var btn = document.getElementById('cf-btn');
-  var badge = document.getElementById('cf-result-badge');
+  var resultEl = document.getElementById('cf-result');
+
+  var currentRotation = 0; // 累加旋转角度，永不重置
+  var DURATION = 2500;
 
   function flip() {
+    if (coinToss.classList.contains('cf-tossing')) return;
     btn.disabled = true;
-    badge.classList.remove('visible');
-    badge.textContent = '';
-    coin.classList.remove('flipping-heads', 'flipping-tails');
-    coin.offsetHeight; /* force reflow to restart animation */
+    resultEl.textContent = '';
 
     var isHeads = Math.random() >= 0.5;
-    coin.classList.add(isHeads ? 'flipping-heads' : 'flipping-tails');
+    var baseTurns = 5 + Math.floor(Math.random() * 4); // 5~8 圈
+    var endDeg = isHeads ? 0 : 180;
+    var newAngle = currentRotation + baseTurns * 360 + endDeg;
 
-    setTimeout(function() {
-      badge.textContent = isHeads ? '正面 · 字' : '反面 · 花';
-      badge.className = 'cf-result-badge visible cf-result-badge--' + (isHeads ? 'heads' : 'tails');
+    coin3d.style.transform = 'rotateY(' + newAngle + 'deg)';
+    currentRotation = newAngle;
+
+    coinToss.classList.add('cf-tossing');
+    scene.classList.add('cf-tossing');
+
+    var done = false;
+    function onEnd() {
+      if (done) return;
+      done = true;
+      coinToss.classList.remove('cf-tossing');
+      scene.classList.remove('cf-tossing');
       btn.disabled = false;
-    }, 1200);
+      resultEl.textContent = isHeads ? '正面' : '反面';
+    }
+
+    coin3d.addEventListener('transitionend', function handler(e) {
+      if (e.propertyName === 'transform') {
+        coin3d.removeEventListener('transitionend', handler);
+        onEnd();
+      }
+    });
+    setTimeout(onEnd, DURATION + 50);
   }
 
   btn.addEventListener('click', flip);
+  coin.addEventListener('click', flip);
 })();
 </script>

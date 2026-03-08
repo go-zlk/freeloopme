@@ -3,7 +3,7 @@
  */
 module.exports = function (hexo) {
   hexo.extend.filter.register('after_post_render', function (data) {
-    if (!data.content) return data;
+    if (!data.content || data.no_heading_downgrade) return data;
     var content = data.content;
     content = content.replace(/<\/h6>/gi, '<!--/H6-->').replace(/<h6>/gi, '<!--H6-->');
     content = content.replace(/<\/h5>/gi, '</h6>').replace(/<h5>/gi, '<h6>');
