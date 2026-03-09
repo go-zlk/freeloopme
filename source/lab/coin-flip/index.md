@@ -110,14 +110,14 @@ layout: post
     }
   }
 
-  /* 旋转层：JS 仅控制 rotateY（正反面），倾斜由父层 keyframes 负责 */
+  /* 旋转层：JS 控制 rotateX（水平轴翻滚，真实抛硬币物理），倾斜由父层 keyframes 负责 */
   .cf-coin-3d {
     position: absolute;
     width: 100%;
     height: 100%;
     left: 0;
     top: 0;
-    transform: rotateY(0deg);
+    transform: rotateX(0deg);
     transform-style: preserve-3d;
     -webkit-transform-style: preserve-3d;
     border-radius: 50%;
@@ -168,13 +168,13 @@ layout: post
     object-position: center center;
     border-radius: 50%;
   }
-  /* 反面 Tails：最底层 Z-0 */
+  /* 反面 Tails：最底层 Z-0，绕 X 轴翻转 180° 以配合 rotateX 正反面逻辑 */
   .cf-coin-face--back {
-    transform: rotateY(180deg) translateZ(0px);
+    transform: rotateX(180deg) translateZ(0px);
   }
   /* 正面 Heads：最顶层 Z-11 */
   .cf-coin-face--front {
-    transform: rotateY(0deg) translateZ(11px);
+    transform: rotateX(0deg) translateZ(11px);
   }
 
   /* 硬币侧边「肉」：10 层金属银，Z-1 到 Z-10 */
@@ -208,19 +208,6 @@ layout: post
     width: 100%;
     margin-top: 0.5rem;
   }
-  /* 结果提示 */
-  .cf-result {
-    text-align: center;
-    margin-top: 0.75rem;
-    font-size: 1rem;
-    font-weight: 500;
-    color: rgba(0,0,0,0.6);
-    min-height: 1.5em;
-  }
-  html[data-user-color-scheme="dark"] .cf-result {
-    color: rgba(255,255,255,0.7);
-  }
-
   /* 按钮 */
   .cf-btn {
     display: inline-flex;
@@ -300,7 +287,6 @@ layout: post
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 6v3l4-4-4-4v3c-4.42 0-8 3.58-8 8 0 1.57.46 3.03 1.24 4.26L6.7 14.8c-.45-.83-.7-1.79-.7-2.8 0-3.31 2.69-6 6-6zm6.76 1.74L17.3 9.2c.44.84.7 1.79.7 2.8 0 3.31-2.69 6-6 6v-3l-4 4 4 4v-3c4.42 0 8-3.58 8-8 0-1.57-.46-3.03-1.24-4.26z"/></svg>
       抛硬币
     </button>
-    <div class="cf-result" id="cf-result" aria-live="polite"></div>
   </div>
 </div>
 
@@ -311,7 +297,6 @@ layout: post
   var coinToss = document.getElementById('cf-coin-toss');
   var coin3d = document.getElementById('cf-coin-3d');
   var btn = document.getElementById('cf-btn');
-  var resultEl = document.getElementById('cf-result');
 
   var currentRotation = 0;
   var DURATION = 1500;
@@ -322,15 +307,17 @@ layout: post
   function flip() {
     if (coinToss.classList.contains('cf-tossing')) return;
     btn.disabled = true;
-    resultEl.textContent = '';
 
     var isHeads = Math.random() >= 0.5;
     var baseTurns = 5 + Math.floor(Math.random() * 4);
     var endDeg = isHeads ? 0 : 180;
-    var newAngle = currentRotation + baseTurns * 360 + endDeg;
+    var newAngleX = currentRotation + baseTurns * 360 + endDeg;
+    /* 微小随机 Y/Z 偏移，模拟真实抛硬币的不完美翻滚 */
+    var wobbleY = (Math.random() - 0.5) * 14;
+    var wobbleZ = (Math.random() - 0.5) * 14;
 
-    coin3d.style.transform = 'rotateY(' + newAngle + 'deg)';
-    currentRotation = newAngle;
+    coin3d.style.transform = 'rotateX(' + newAngleX + 'deg) rotateY(' + wobbleY + 'deg) rotateZ(' + wobbleZ + 'deg)';
+    currentRotation = newAngleX;
 
     coinToss.classList.add('cf-tossing');
     coinWrapper.classList.add('cf-tossing');
@@ -345,7 +332,6 @@ layout: post
       coinToss.classList.remove('cf-tossing');
       coinWrapper.classList.remove('cf-tossing');
       btn.disabled = false;
-      resultEl.textContent = isHeads ? '正面' : '反面';
 
       dropAudio.currentTime = 0;
       dropAudio.play().catch(function() {});
