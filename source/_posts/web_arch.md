@@ -1,6 +1,7 @@
 ---
 title: 现代静态网站与云原生图床架构解析
 date: 2026-03-08 20:00:00
+categories: 知识库
 description: 处理高分辨率视觉资产的极客工程实践：从静态编译、边缘分发到云原生图床，彻底解耦前端骨架与海量数据流。
 excerpt: 彻底抛弃将几十兆全画幅原图塞入 Git 仓库的传统做法。本文深剖 Vercel + CDN + OSS 的解耦架构，用毫秒级响应支撑你的高画质数字花园。
 no_heading_downgrade: true

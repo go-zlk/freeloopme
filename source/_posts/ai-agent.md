@@ -1,6 +1,7 @@
 ---
 title: AI Agent 实战指南
 date: 2026-02-20 18:00:00
+categories: 知识库
 description: 面向开发者的 AI Agent 实战全路径：从思维迁移、核心技能到可落地的多 Agent 架构。涵盖 LangGraph、RAG、Tool Calling 等核心能力，以及 OpenClaw、ZeroClaw、Claude Code 等工具选型与避坑建议。
 no_heading_downgrade: true
 ---
