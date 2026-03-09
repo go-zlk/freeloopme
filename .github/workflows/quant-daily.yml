@@ -1,0 +1,50 @@
+name: Quant Data Auto-Update
+
+# 触发条件
+on:
+  schedule:
+    # 每天美东时间 18:00 (即 UTC 时间 22:00 或 23:00, 视夏令时而定) 执行
+    # 周一到周五运行 (对应美股交易日)
+    - cron: '0 23 * * 1-5'
+  
+  # 极其重要：允许我们在 GitHub 网页端手动点击按钮触发，方便测试！
+  workflow_dispatch: 
+
+# 允许 GitHub Actions 推送代码回仓库
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 检出代码 (Checkout)
+        uses: actions/checkout@v3
+        
+      - name: 🐍 设置 Python 环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: 📦 安装依赖库
+        run: |
+          python -m pip install --upgrade pip
+          pip install yfinance pandas pytz
+          
+      - name: 📈 运行量化数据抓取脚本
+        run: python scripts/fetch_quant.py
+        
+      - name: 🚀 提交并推送到 GitHub (触发 Vercel)
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # 检查是否有文件变动（周末可能数据没变）
+          if [[ -n $(git status -s) ]]; then
+            git add source/data/quant_nvda.json
+            git commit -m "🤖 Auto-update NVDA market data"
+            git push
+          else
+            print "No data changes to commit."
+          fi
