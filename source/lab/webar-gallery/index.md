@@ -46,7 +46,7 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
 </style>
 
 <div class="gallery-wrapper" id="webgl-container">
-  <div class="gallery-hint"><i class="fa-solid fa-hand-pointer"></i> 拖拽旋转视角 | 滚轮缩放</div>
+  <div class="gallery-hint"><i class="fa-solid fa-hand-pointer"></i> 拖拽旋转视角 | 滚轮缩放 | 双击对焦/取消对焦 | 鼠标悬停照片暂停旋转</div>
 </div>
 
 <script type="importmap">
@@ -71,21 +71,42 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
   // 留空背景色，让它透明以露出 CSS 设置的暗黑/浅色背景
   
   const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
-  camera.position.set(0, 0, 8); // 相机后退，纵观全图
+  // 相机初始位置在构建照片矩阵后设置，以适配动态半径
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(width, height);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace; // 确保照片色彩真实
   container.appendChild(renderer.domElement);
 
-  // 2. 添加环境光与点光源
+  // 2. 赛博感星空背景（根据主题切换粒子颜色，浅色模式用深色粒子）
+  const starsGeometry = new THREE.BufferGeometry();
+  const starsCount = 500;
+  const posArray = new Float32Array(starsCount * 3);
+  for (let i = 0; i < starsCount * 3; i++) {
+    posArray[i] = (Math.random() - 0.5) * 50;
+  }
+  starsGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+  const starsMaterial = new THREE.PointsMaterial({ size: 0.05, color: 0x58a6ff });
+  const starField = new THREE.Points(starsGeometry, starsMaterial);
+  scene.add(starField);
+
+  function updateStarColor() {
+    const isDark = document.documentElement.getAttribute('data-user-color-scheme') === 'dark';
+    starsMaterial.color.setHex(isDark ? 0x58a6ff : 0x0969da); // 深色模式亮蓝，浅色模式深蓝
+  }
+  updateStarColor();
+  const themeObserver = new MutationObserver(updateStarColor);
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-user-color-scheme'] });
+
+  // 3. 添加环境光与点光源
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(ambientLight);
   const pointLight = new THREE.PointLight(0xffffff, 1.5);
   pointLight.position.set(0, 5, 0);
   scene.add(pointLight);
 
-  // 3. 构建环形照片矩阵 (使用占位图供测试)
+  // 4. 构建环形照片矩阵 (使用占位图供测试)
   // 这里可以替换为你 OSS 图床里的高清摄影原图直链
   const photoUrls = [
     'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08379.webp',
@@ -96,23 +117,96 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
     'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08460.webp',
     'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08373.webp',
     'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08381.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08242.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06715.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06641.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06685.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08804.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08588.webp',
+    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08595.webp',
   ];
 
-  const radius = 6; // 圆环半径
   const photoCount = photoUrls.length;
+  const photoWidth = 3.2;
+  const photoHeight = 2.4;
+  // 根据照片数量动态计算半径，避免相邻照片重叠（弦长 >= 画框宽度 * 1.1）
+  const radius = Math.max(6, photoWidth * 1.1 / (2 * Math.sin(Math.PI / photoCount)));
+  const defaultCameraZ = Math.max(8, radius + 3);
+  camera.position.set(0, 0, defaultCameraZ);
   const group = new THREE.Group();
   scene.add(group);
 
   const textureLoader = new THREE.TextureLoader();
-  const geometry = new THREE.PlaneGeometry(3.2, 2.4); // 设置画框的宽高比 (4:3)
+  const geometry = new THREE.PlaneGeometry(photoWidth, photoHeight); // 4:3 画框
+
+  // 星空顶效果：随机散落的亮点，无放射状
+  const starSprite = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = 48;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(24, 24, 0, 24, 24, 24);
+    g.addColorStop(0, 'rgba(255,255,255,0.98)');
+    g.addColorStop(0.2, 'rgba(220,240,255,0.7)');
+    g.addColorStop(0.5, 'rgba(180,220,255,0.2)');
+    g.addColorStop(1, 'rgba(180,220,255,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(24, 24, 24, 0, Math.PI * 2);
+    ctx.fill();
+    return new THREE.CanvasTexture(c);
+  })();
+
+  function createStarfieldParticles() {
+    const w = photoWidth / 2, h = photoHeight / 2;
+    const margin = 0.18;
+    const particles = [];
+    for (let i = 0; i < 120; i++) {
+      const side = Math.floor(Math.random() * 4);
+      let x, y;
+      if (side === 0) { x = -w + Math.random() * w * 2; y = -h - Math.random() * margin; }
+      else if (side === 1) { x = w + Math.random() * margin; y = -h + Math.random() * h * 2; }
+      else if (side === 2) { x = w - Math.random() * w * 2; y = h + Math.random() * margin; }
+      else { x = -w - Math.random() * margin; y = h - Math.random() * h * 2; }
+      particles.push({
+        x, y,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 1.2,
+        size: 0.02 + Math.random() * 0.05
+      });
+    }
+    const bySize = [[],[],[]];
+    particles.forEach(p => {
+      const i = p.size < 0.035 ? 0 : p.size < 0.055 ? 1 : 2;
+      bySize[i].push(p);
+    });
+    const group = new THREE.Group();
+    group.visible = false;
+    [0.035, 0.05, 0.07].forEach((baseSize, tier) => {
+      const list = bySize[tier];
+      if (list.length === 0) return;
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(list.length * 3), 3));
+      const mat = new THREE.PointsMaterial({
+        size: baseSize,
+        map: starSprite,
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.9,
+        sizeAttenuation: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+      });
+      const pts = new THREE.Points(geom, mat);
+      pts.userData.particleData = list;
+      group.add(pts);
+    });
+    return group;
+  }
 
   photoUrls.forEach((url, index) => {
-    // 计算每张照片在圆环上的角度
     const angle = (index / photoCount) * Math.PI * 2;
     
-    // 加载纹理并创建材质
     textureLoader.load(url, (texture) => {
-      // 使用 MeshStandardMaterial 让照片对光照有反应
       const material = new THREE.MeshStandardMaterial({ 
         map: texture, 
         side: THREE.DoubleSide,
@@ -120,19 +214,19 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
         metalness: 0.1
       });
       const mesh = new THREE.Mesh(geometry, material);
+      const borderParticles = createStarfieldParticles();
+      mesh.add(borderParticles);
+      mesh.userData.borderParticles = borderParticles;
       
-      // 定位：根据极坐标计算 X 和 Z 坐标
       mesh.position.x = Math.cos(angle) * radius;
       mesh.position.z = Math.sin(angle) * radius;
-      
-      // 旋转：让每张照片的法线都指向圆心
       mesh.lookAt(0, 0, 0);
       
       group.add(mesh);
     });
   });
 
-  // 4. 添加轨道控制器 (阻尼效果)
+  // 5. 添加轨道控制器 (阻尼效果)
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
@@ -140,19 +234,110 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
   controls.minDistance = 2;   // 最近距离
   controls.maxDistance = 15;  // 最远距离
 
-  // 5. 渲染循环与缓慢自转
+  // 6. 射线检测：仅当鼠标在照片上时暂停旋转，双击对焦
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const worldPos = new THREE.Vector3();
+  let targetCameraPos = null;
+  let targetControlsLookAt = null;
+  let hoveredMesh = null;
+  let isFocused = false;
+
+  container.addEventListener('mousemove', (e) => {
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+  });
+  container.addEventListener('mouseleave', () => {
+    if (hoveredMesh) {
+      hoveredMesh.scale.setScalar(1);
+      if (hoveredMesh.userData.borderParticles) hoveredMesh.userData.borderParticles.visible = false;
+    }
+    hoveredMesh = null;
+    isFocused = false;
+  });
+
+  container.addEventListener('dblclick', (event) => {
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(group.children);
+
+    if (isFocused) {
+      // 再次双击：回到默认俯瞰视角
+      targetCameraPos = new THREE.Vector3(0, 0, defaultCameraZ);
+      targetControlsLookAt = new THREE.Vector3(0, 0, 0);
+      isFocused = false;
+    } else if (intersects.length > 0) {
+      const target = intersects[0].object;
+      target.getWorldPosition(worldPos);
+      targetCameraPos = worldPos.clone().normalize().multiplyScalar(radius + 4);
+      targetControlsLookAt = worldPos.clone();
+      isFocused = true;
+    }
+  });
+
+  // 7. 渲染循环：射线检测悬停、缩放与发光、自转
+  const HOVER_SCALE = 1.08;
+
   function animate() {
     requestAnimationFrame(animate);
-    
-    // 让整个照片组以极慢的速度自动旋转，增加沉浸感
-    group.rotation.y += 0.001;
-    
+
+    // 射线检测：仅当鼠标在照片上时 hoveredMesh 有值
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(group.children);
+    const newHovered = intersects.length > 0 ? intersects[0].object : null;
+
+    // 重置上一张悬停照片的缩放与边框粒子
+    if (hoveredMesh && hoveredMesh !== newHovered) {
+      hoveredMesh.scale.setScalar(1);
+      if (hoveredMesh.userData.borderParticles) hoveredMesh.userData.borderParticles.visible = false;
+    }
+    hoveredMesh = newHovered;
+
+    // 当前悬停照片：轻微放大 + 边框发光粒子（无整图变蓝）
+    if (hoveredMesh) {
+      hoveredMesh.scale.lerp(new THREE.Vector3(HOVER_SCALE, HOVER_SCALE, HOVER_SCALE), 0.15);
+      if (hoveredMesh.userData.borderParticles) {
+        const bp = hoveredMesh.userData.borderParticles;
+        bp.visible = true;
+        const t = Date.now() * 0.001;
+        bp.children.forEach(pts => {
+          pts.material.opacity = 0.85 + Math.sin(t * 1.2) * 0.1;
+          const data = pts.userData.particleData;
+          const pos = pts.geometry.attributes.position.array;
+          data.forEach((p, i) => {
+            const twinkle = Math.sin(t * p.speed + p.phase) * 0.008;
+            pos[i*3]   = p.x + Math.cos(t * 0.7 + p.phase) * twinkle;
+            pos[i*3+1] = p.y + Math.sin(t * 0.9 + p.phase) * twinkle;
+            pos[i*3+2] = 0.01;
+          });
+          pts.geometry.attributes.position.needsUpdate = true;
+        });
+      }
+    }
+
+    // 平滑相机对焦
+    if (targetCameraPos && targetControlsLookAt) {
+      camera.position.lerp(targetCameraPos, 0.05);
+      controls.target.lerp(targetControlsLookAt, 0.05);
+      if (camera.position.distanceTo(targetCameraPos) < 0.02) {
+        targetCameraPos = null;
+        targetControlsLookAt = null;
+      }
+    }
+
+    // 仅当鼠标在照片上或双击对焦后暂停旋转
+    if (!hoveredMesh && !isFocused) group.rotation.y += 0.001;
+
     controls.update();
     renderer.render(scene, camera);
   }
   animate();
 
-  // 6. 监听容器大小变化，自适应重绘
+  // 8. 监听容器大小变化，自适应重绘
   window.addEventListener('resize', () => {
     const newWidth = container.clientWidth;
     const newHeight = container.clientHeight;
