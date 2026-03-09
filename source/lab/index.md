@@ -59,9 +59,9 @@ html[data-user-color-scheme="dark"] .lab-card:hover { box-shadow: 0 12px 24px rg
       </div>
     </a>
     
-    <a href="#" class="lab-card" style="opacity: 0.6; cursor: not-allowed;">
+    <a href="/lab/webar-gallery/" class="lab-card">
       <div class="lab-icon" style="color: #3fb950; background: rgba(46,160,67,0.1);"><i class="fa-solid fa-cube"></i></div>
-      <h3 class="lab-title">WebAR Gallery (Coming Soon)</h3>
+      <h3 class="lab-title">WebAR Gallery</h3>
       <p class="lab-desc">基于 Three.js 和 WebXR 构建的空间照片展览室。将二维的摄影作品投射到三维的数字空间中沉浸式游览。</p>
       <div class="lab-tags">
         <span class="lab-tag">Three.js</span>
