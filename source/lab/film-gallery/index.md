@@ -17,19 +17,35 @@ layout: page
   margin-right: -50vw;
   
   overflow: hidden;
-  background-color: #050505; /* 稍微加深一点背景 */
-  padding: 30px 0; /* 上下留白加大，更大气 */
-  /* 利用 CSS 遮罩，让左右两端 15% 的区域产生羽化渐变效果 */
-  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
-  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+  background-color: #050505;
+  padding: 30px 0;
+  /* 更柔和的边缘羽化：0–20% 和 80–100% 渐变，照片进出更自然 */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%);
+}
+/* 模拟胶片颗粒：低透明度噪声叠加层 */
+.film-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='256' height='256'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* 2. 胶片主体 & 无缝滚动动画 */
+.film-track-outer {
+  display: inline-block;
+  will-change: transform;
+  /* 背光：胶片与纯黑背景分离，微弱青蓝光晕 */
+  filter: drop-shadow(0 0 80px rgba(0, 150, 200, 0.08)) drop-shadow(0 0 160px rgba(0, 100, 150, 0.04));
+}
 .film-track {
   display: flex;
   width: max-content;
-  /* 调整 30s 改变滚动速度 */
-  animation: scroll-left 30s linear infinite; 
+  animation: scroll-left 30s linear infinite;
 }
 
 /* 鼠标悬停时暂停滚动 */
@@ -37,34 +53,48 @@ layout: page
   animation-play-state: paused;
 }
 
-/* 3. 胶片边框与齿孔设计 (纯 CSS 绘制) */
+/* 3. 胶片边框与齿孔：纯 CSS 模拟 35mm 机械齿孔 */
 .film-frame {
   flex-shrink: 0;
-  background-color: #000000;
-  padding: 32px 12px; /* 上下留出打孔的空间 */
-  margin: 0 2px; /* 胶片之间的微小间隙 */
-  
-  /* 上下胶片齿孔效果 */
-  background-image: 
-    repeating-linear-gradient(to right, transparent 0px, transparent 12px, #2a2a2a 12px, #2a2a2a 20px),
-    repeating-linear-gradient(to right, transparent 0px, transparent 12px, #2a2a2a 12px, #2a2a2a 20px);
-  background-position: top 8px left 0, bottom 8px left 0;
-  background-size: 100% 10px, 100% 10px;
-  background-repeat: no-repeat;
+  position: relative;
+  background: #000000;
+  padding: 24px 8px;
+  margin: 0 2px;
+  width: fit-content;
+}
+/* 顶部齿孔 (::before) */
+.film-frame::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 100%;
+  height: 10px;
+  opacity: 0.9;
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent 8px, #0a0a0a 8px, #0a0a0a 16px);
+}
+/* 底部齿孔 (::after) */
+.film-frame::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  width: 100%;
+  height: 10px;
+  opacity: 0.9;
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent 8px, #0a0a0a 8px, #0a0a0a 16px);
 }
 
-/* 4. 照片样式 */
+/* 4. 照片嵌入：保持原图比例，不裁剪 */
 .film-frame img {
   display: block;
-  height: 240px; 
+  height: 200px;
   width: auto;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 2px;
-  /* 增加一点相纸的厚度感 */
-  border: 2px solid rgba(255, 255, 255, 0.1); 
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.8);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 0 0 2px rgba(255, 255, 255, 0.03);
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  filter: grayscale(30%) contrast(1.1); /* 加深胶片褪色感 */
+  filter: grayscale(30%) contrast(1.1);
 }
 
 /* 鼠标放在单张照片上的微交互 */
@@ -98,9 +128,16 @@ layout: page
   opacity: 1;
   pointer-events: auto;
 }
+.film-lightbox .lightbox-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 90vw;
+}
 .film-lightbox img {
   max-width: 90vw;
-  max-height: 90vh;
+  max-height: 75vh;
   object-fit: contain;
   border-radius: 4px;
   box-shadow: 0 0 40px rgba(0,0,0,0.6);
@@ -110,39 +147,52 @@ layout: page
 .film-lightbox.active img {
   transform: scale(1); /* 弹出时的微距放大动画 */
 }
+.lightbox-caption {
+  padding: 10px 20px;
+  background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.4));
+  border-radius: 8px;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.film-lightbox.active .lightbox-caption {
+  opacity: 1;
+  transform: translateY(0);
+}
 </style>
 
 <div class="film-container">
-  <div class="film-track" id="film-track">
+  <div class="film-track-outer" id="film-track-outer">
+    <div class="film-track" id="film-track">
+    </div>
   </div>
 </div>
 
 <div class="film-lightbox" id="film-lightbox">
-  <img id="lightbox-img" src="" alt="Enlarged" />
+  <div class="lightbox-content">
+    <img id="lightbox-img" src="" alt="Enlarged" />
+    <div id="lightbox-caption" class="lightbox-caption"></div>
+  </div>
 </div>
 
+<script src="/assets/js/photos.js"></script>
 <script>
-  const filmPhotos = [
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08379.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08417.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08356.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08440.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08441.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08460.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08373.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08381.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08242.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06715.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06641.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06685.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08804.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08588.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08595.webp',
-  ];
+  const filmPhotos = window.PHOTO_URLS || [];
 
   const track = document.getElementById('film-track');
+  const trackOuter = document.getElementById('film-track-outer');
+  const container = document.querySelector('.film-container');
   const lightbox = document.getElementById('film-lightbox');
   const lightboxImg = document.getElementById('lightbox-img');
+  const lightboxCaption = document.getElementById('lightbox-caption');
+
+  const DEFAULT_CAPTION = 'SONY';
 
   // 1. 渲染照片 (去掉 <a> 标签，改用事件代理拦截，避免阿里云 OSS 强制下载)
   const renderPhotos = () => {
@@ -150,7 +200,7 @@ layout: page
     filmPhotos.forEach(url => {
       htmlContent += `
         <div class="film-frame">
-          <img src="${url}" style="cursor: zoom-in;" alt="Film Memory" loading="lazy" />
+          <img src="${url}" style="cursor: zoom-in;" alt="Film Memory" data-caption="${DEFAULT_CAPTION}" loading="lazy" />
         </div>
       `;
     });
@@ -162,8 +212,9 @@ layout: page
   // 2. 事件代理：监听整个胶片带的点击事件
   track.addEventListener('click', (e) => {
     if (e.target.tagName === 'IMG') {
-      const imgSrc = e.target.getAttribute('src');
-      lightboxImg.setAttribute('src', imgSrc);
+      const img = e.target;
+      lightboxImg.setAttribute('src', img.getAttribute('src'));
+      lightboxCaption.textContent = img.getAttribute('data-caption') || img.getAttribute('alt') || DEFAULT_CAPTION;
       lightbox.classList.add('active');
     }
   });
@@ -172,5 +223,23 @@ layout: page
   lightbox.addEventListener('click', () => {
     lightbox.classList.remove('active');
   });
+
+  // 4. 滚轮横向拖拽：悬停时用滚轮手动平移胶片（模拟胶片卷轴拖拽感）
+  let manualOffset = 0;
+  let targetOffset = 0;
+  container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    targetOffset += e.deltaY * 0.8;
+    const trackWidth = track.offsetWidth;
+    const halfWidth = trackWidth / 2;
+    targetOffset = Math.max(-halfWidth, Math.min(halfWidth, targetOffset));
+  }, { passive: false });
+
+  function smoothPan() {
+    manualOffset += (targetOffset - manualOffset) * 0.12;
+    trackOuter.style.transform = `translateX(${manualOffset}px)`;
+    requestAnimationFrame(smoothPan);
+  }
+  smoothPan();
 </script>
 {% endraw %}

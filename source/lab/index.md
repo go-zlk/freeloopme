@@ -41,7 +41,7 @@ html[data-user-color-scheme="dark"] .lab-card:hover { box-shadow: 0 12px 24px rg
     <a href="/lab/prompt-builder/" class="lab-card">
       <div class="lab-icon"><i class="fa-solid fa-terminal"></i></div>
       <h3 class="lab-title">Prompt Builder</h3>
-      <p class="lab-desc">纯前端的系统提示词结构化组装台。通过预设角色、约束条件与思维链开关，毫秒级实时生成可直接喂给本地 LLM 的优质 Prompt。</p>
+      <p class="lab-desc">把 Prompt 当积木搭。选角色、勾约束、开思维链，几秒内拼出一段能直接喂给本地 LLM 的提示词，全程在浏览器里完成。</p>
       <div class="lab-tags">
         <span class="lab-tag">AI Agent</span>
         <span class="lab-tag">Productivity</span>
@@ -52,7 +52,7 @@ html[data-user-color-scheme="dark"] .lab-card:hover { box-shadow: 0 12px 24px rg
     <a href="/lab/coin-flip/" class="lab-card">
       <div class="lab-icon" style="color: #d29922; background: rgba(210,153,34,0.1);"><i class="fa-solid fa-coins"></i></div>
       <h3 class="lab-title">Coin Flip 3D</h3>
-      <p class="lab-desc">修复了物理翻滚轴的抛硬币微交互组件。结合了简单的 CSS 3D 转换与真实的物理下落音效反馈，用于解决选择困难症。</p>
+      <p class="lab-desc">抛一枚会翻跟头的 3D 硬币，听它落地时的清脆声。选不出来的时候，交给它来决定吧。</p>
       <div class="lab-tags">
         <span class="lab-tag">CSS 3D</span>
         <span class="lab-tag">Micro-interaction</span>
@@ -62,7 +62,7 @@ html[data-user-color-scheme="dark"] .lab-card:hover { box-shadow: 0 12px 24px rg
     <a href="/lab/webar-gallery/" class="lab-card">
       <div class="lab-icon" style="color: #3fb950; background: rgba(46,160,67,0.1);"><i class="fa-solid fa-cube"></i></div>
       <h3 class="lab-title">WebAR Gallery</h3>
-      <p class="lab-desc">基于 Three.js 和 WebXR 构建的空间照片展览室。将二维的摄影作品投射到三维的数字空间中沉浸式游览。</p>
+      <p class="lab-desc">把照片放进会转的 3D 空间里，像在真实画廊里慢慢逛。</p>
       <div class="lab-tags">
         <span class="lab-tag">Three.js</span>
         <span class="lab-tag">WebGL</span>
@@ -72,7 +72,7 @@ html[data-user-color-scheme="dark"] .lab-card:hover { box-shadow: 0 12px 24px rg
     <a href="/lab/film-gallery/" class="lab-card">
       <div class="lab-icon" style="color: #a371f7; background: rgba(163,113,247,0.1);"><i class="fa-solid fa-film"></i></div>
       <h3 class="lab-title">胶片记忆</h3>
-      <p class="lab-desc">复古胶片风格的无缝滚动画廊。支持点击放大预览，纯前端原生 Lightbox 实现，完美绕过 OSS 强制下载限制。</p>
+      <p class="lab-desc">像老式胶片一样缓缓滑过的照片墙。</p>
       <div class="lab-tags">
         <span class="lab-tag">CSS 动画</span>
         <span class="lab-tag">Lightbox</span>

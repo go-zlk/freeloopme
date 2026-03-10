@@ -49,6 +49,8 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
   <div class="gallery-hint"><i class="fa-solid fa-hand-pointer"></i> 拖拽旋转视角 | 滚轮缩放 | 双击对焦/取消对焦 | 鼠标悬停照片暂停旋转</div>
 </div>
 
+<script src="/assets/js/photos.js"></script>
+<script src="/assets/js/lab-utils.js"></script>
 <script type="importmap">
   {
     "imports": {
@@ -106,27 +108,9 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
   pointLight.position.set(0, 5, 0);
   scene.add(pointLight);
 
-  // 4. 构建环形照片矩阵 (使用占位图供测试)
-  // 这里可以替换为你 OSS 图床里的高清摄影原图直链
-  const photoUrls = [
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08379.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08417.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08356.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08440.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08441.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08460.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08373.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08381.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08242.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06715.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06641.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC06685.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08804.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08588.webp',
-    'https://freeloop-assets.oss-cn-shenzhen.aliyuncs.com/photos/DSC08595.webp',
-  ];
-
-  const photoCount = photoUrls.length;
+  // 4. 构建环形照片矩阵（相册列表由 /assets/js/photos.js 统一维护）
+  const photoUrls = window.PHOTO_URLS || [];
+  const photoCount = Math.max(1, photoUrls.length);
   const photoWidth = 3.2;
   const photoHeight = 2.4;
   // 根据照片数量动态计算半径，避免相邻照片重叠（弦长 >= 画框宽度 * 1.1）
@@ -137,6 +121,33 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
   scene.add(group);
 
   const textureLoader = new THREE.TextureLoader();
+  // 跨域图片：先直连（OSS 配置 CORS 后可用），失败再用代理；代理有 413 限制，lab-utils 会请求 OSS 缩略图
+  const loadTexture = (url, onLoad, onError) => {
+    const isCrossOrigin = url.startsWith('http') && new URL(url, location.href).origin !== location.origin;
+    if (!isCrossOrigin) {
+      textureLoader.load(url, onLoad, undefined, onError);
+      return;
+    }
+    const fallback = function() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256; canvas.height = 192;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#2d3748'; ctx.fillRect(0, 0, 256, 192);
+      ctx.fillStyle = '#718096'; ctx.font = '14px sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('加载失败', 128, 96);
+      onLoad(new THREE.CanvasTexture(canvas));
+    };
+    textureLoader.load(url, onLoad, undefined, function() {
+      (window.getCrossOriginImageUrl || function(u) { return Promise.resolve(u); })(url)
+        .then(function(blobUrl) {
+          textureLoader.load(blobUrl, function(tex) {
+            if (blobUrl.startsWith('blob:')) URL.revokeObjectURL(blobUrl);
+            onLoad(tex);
+          }, undefined, fallback);
+        })
+        .catch(fallback);
+    });
+  };
   const geometry = new THREE.PlaneGeometry(photoWidth, photoHeight); // 4:3 画框
 
   // 星空顶效果：随机散落的亮点，无放射状
@@ -206,7 +217,7 @@ html[data-user-color-scheme="light"] .gallery-wrapper {
   photoUrls.forEach((url, index) => {
     const angle = (index / photoCount) * Math.PI * 2;
     
-    textureLoader.load(url, (texture) => {
+    loadTexture(url, (texture) => {
       const material = new THREE.MeshStandardMaterial({ 
         map: texture, 
         side: THREE.DoubleSide,
