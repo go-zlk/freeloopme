@@ -68,6 +68,16 @@ html[data-user-color-scheme="dark"] .lab-card:hover { box-shadow: 0 12px 24px rg
         <span class="lab-tag">WebGL</span>
       </div>
     </a>
+
+    <a href="/lab/film-gallery/" class="lab-card">
+      <div class="lab-icon" style="color: #a371f7; background: rgba(163,113,247,0.1);"><i class="fa-solid fa-film"></i></div>
+      <h3 class="lab-title">胶片记忆</h3>
+      <p class="lab-desc">复古胶片风格的无缝滚动画廊。支持点击放大预览，纯前端原生 Lightbox 实现，完美绕过 OSS 强制下载限制。</p>
+      <div class="lab-tags">
+        <span class="lab-tag">CSS 动画</span>
+        <span class="lab-tag">Lightbox</span>
+      </div>
+    </a>
   </div>
 </div>
 {% endraw %}
