@@ -312,11 +312,8 @@ layout: post
     var baseTurns = 5 + Math.floor(Math.random() * 4);
     var endDeg = isHeads ? 0 : 180;
     var newAngleX = currentRotation + baseTurns * 360 + endDeg;
-    /* 微小随机 Y/Z 偏移，模拟真实抛硬币的不完美翻滚 */
-    var wobbleY = (Math.random() - 0.5) * 14;
-    var wobbleZ = (Math.random() - 0.5) * 14;
 
-    coin3d.style.transform = 'rotateX(' + newAngleX + 'deg) rotateY(' + wobbleY + 'deg) rotateZ(' + wobbleZ + 'deg)';
+    coin3d.style.transform = 'rotateX(' + newAngleX + 'deg)';
     currentRotation = newAngleX;
 
     coinToss.classList.add('cf-tossing');
